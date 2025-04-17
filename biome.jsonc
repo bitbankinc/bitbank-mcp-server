@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignore": ["**/dist/**", "broker-app-front/config/default.json", ".vscode/*.json"],
+    "ignoreUnknown": true
+  },
+  "vcs": {
+    "clientKind": "git"
+  },
+  "linter": {
+    "ignore": ["**/build/**", "**/dist/**", "**/node_modules/**", "**/coverage/**", "**/out/**", "**/lib/**", "**/es5/**"],
+    "rules": {
+      "complexity": {
+        "noForEach": "off",
+        "useLiteralKeys": "off",
+        "noUselessSwitchCase": "off",
+        "noUselessConstructor": "off",
+        "noStaticOnlyClass": "off"
+      },
+      "correctness": {
+        "useYield": "off"
+      },
+      "performance": {
+        "noDelete": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useTemplate": "off",
+        "useImportType": "off",
+        "noUselessElse": "off",
+        "noParameterAssign": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noPrototypeBuiltins": "off"
+      }
+    }
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "lineWidth": 140
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "single",
+      "quoteProperties": "preserve"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "json": {
+    "parser": {
+      "allowComments": true,
+      "allowTrailingCommas": true
+    },
+    "formatter": {
+      "indentStyle": "space"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "mcp-server-bitbank",
+  "version": "0.0.0",
+  "description": "bitbank mcp server",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "mcp-server-bitbank": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "format:check": "npx biome check",
+    "format:fix": "npx biome check --fix --unsafe"
+  },
+  "files": ["build"],
+  "keywords": ["mcp"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "bignumber.js": "^9.1.2",
+    "dayjs": "^1.11.13",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}
