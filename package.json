@@ -1,11 +1,11 @@
 {
-  "name": "mcp-server-bitbank",
+  "name": "bitbank-mcp-server",
   "version": "0.0.0",
   "description": "bitbank mcp server",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "mcp-server-bitbank": "./build/index.js"
+    "bitbank-mcp-server": "./build/index.js"
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
