@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import { getTickerResponse } from './client.js';
 import { pairRegex } from './config/pair.js';
-import { formatTicker } from './utils.ts/format-ticker.js';
-import { getTickerResponse } from './utils.ts/get-ticker.js';
+import { formatTicker } from './utils/format-ticker.js';
 
 // Create server instance
 const server = new McpServer({
@@ -13,7 +13,7 @@ const server = new McpServer({
 
 // Register bitbank tools
 server.tool(
-  'get-ticker',
+  'get_ticker',
   'Get ticker data for a trading pair',
   {
     pair: z.string().regex(pairRegex).describe('Trading pair to get ticker data for. eg. btc_jpy, eth_jpy').endsWith('_jpy'),

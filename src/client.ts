@@ -1,4 +1,4 @@
-import { TickerResponse } from '../types.js';
+import { TickerResponse } from './types.js';
 
 // bitban public api base url
 const BITBANK_API_BASE_URL = 'https://public.bitbank.cc/';
