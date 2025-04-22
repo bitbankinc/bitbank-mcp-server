@@ -9,21 +9,21 @@
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
-    "format:check": "npx biome check",
-    "format:fix": "npx biome check --fix --unsafe"
+    "format:check": "biome check",
+    "format:fix": "biome check --fix --unsafe"
   },
   "files": ["build"],
   "keywords": ["mcp"],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@biomejs/biome": "^1.9.4",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "bignumber.js": "^9.1.2",
     "dayjs": "^1.11.13",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.10",
     "typescript": "^5.8.2"
   },
