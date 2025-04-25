@@ -8,7 +8,7 @@
     "clientKind": "git"
   },
   "linter": {
-    "ignore": ["**/build/**", "**/dist/**", "**/node_modules/**", "**/coverage/**", "**/out/**", "**/lib/**", "**/es5/**"],
+    "ignore": ["**/build/**", "**/node_modules/**"],
     "rules": {
       "complexity": {
         "noForEach": "off",
@@ -37,6 +37,7 @@
     }
   },
   "formatter": {
+    "ignore": ["**/build/**", "**/node_modules/**"],
     "indentStyle": "space",
     "lineWidth": 140
   },
