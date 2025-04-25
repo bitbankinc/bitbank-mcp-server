@@ -34,7 +34,7 @@ This project is a Model Context Protocol (MCP) server for [bitbank](https://bitb
 }
 ```
 
-### WIP: Docker
+### Docker
 
 - Install [Docker](https://www.docker.com/get-started) for your OS.
 - Install [Claude desktop](https://claude.ai/download) or other MCP client
@@ -46,7 +46,7 @@ This project is a Model Context Protocol (MCP) server for [bitbank](https://bitb
   "mcpServers": {
     "bitbank": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "bitbank-mcp-server"]
+      "args": ["run", "-i", "--rm", "ghcr.io/bitbankinc/bitbank-mcp-server"]
     }
   }
 }
