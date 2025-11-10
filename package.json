@@ -12,12 +12,8 @@
     "format:check": "npx biome check",
     "format:fix": "npx biome check --fix --unsafe"
   },
-  "files": [
-    "build"
-  ],
-  "keywords": [
-    "mcp"
-  ],
+  "files": ["build"],
+  "keywords": ["mcp"],
   "author": "",
   "license": "MIT",
   "dependencies": {
