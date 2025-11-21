@@ -15,8 +15,7 @@ This project is a Model Context Protocol (MCP) server for [bitbank](https://bitb
 
 - Install [Node.js](https://nodejs.org/en/download/)
 - Install [Claude desktop](https://claude.ai/download) or other MCP client
-- Set MCP server to Claude desktop
-  - https://modelcontextprotocol.io/quickstart/user
+- Configure the MCP server in Claude Desktop following the [MCP quickstart guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
 ```json
 {
@@ -54,8 +53,7 @@ If npx cannot be executed, running `which npx` and specifying the command direct
 
 - Install [Docker](https://www.docker.com/get-started) for your OS.
 - Install [Claude desktop](https://claude.ai/download) or other MCP client
-- Set MCP server to Claude desktop
-  - https://modelcontextprotocol.io/quickstart/user
+- Configure the MCP server in Claude Desktop following the [MCP quickstart guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
 ```json
 {
