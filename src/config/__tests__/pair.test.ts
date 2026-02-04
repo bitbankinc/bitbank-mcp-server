@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALLOWED_PAIRS, ensurePair, normalizePair } from '../pair.js';
+import { ensurePair, normalizePair } from '../pair.js';
 
 describe('normalizePair', () => {
   it('正規形式をそのまま返す', () => {
@@ -38,19 +38,8 @@ describe('ensurePair', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('未対応ペアで ok: false を返す', () => {
-    const result = ensurePair('xxx_yyy');
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toMatch(/未対応/);
-    }
-  });
-});
-
-describe('ALLOWED_PAIRS', () => {
-  it('主要ペアを含む', () => {
-    expect(ALLOWED_PAIRS.has('btc_jpy')).toBe(true);
-    expect(ALLOWED_PAIRS.has('eth_jpy')).toBe(true);
-    expect(ALLOWED_PAIRS.has('xrp_jpy')).toBe(true);
+  it('形式が正しければ任意のペアを受け入れる', () => {
+    const result = ensurePair('abc_xyz');
+    expect(result).toEqual({ ok: true, pair: 'abc_xyz' });
   });
 });

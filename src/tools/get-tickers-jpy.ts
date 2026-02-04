@@ -1,7 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dayjs from 'dayjs';
 import { BITBANK_API_BASE, fetchJson } from '../client.js';
-import { ALLOWED_PAIRS } from '../config/pair.js';
 import { NormalizedTicker, TickersJpyResponse } from '../types.js';
 import { toIsoTime } from '../utils/datetime.js';
 import { formatChange, formatPair, formatPrice } from '../utils/format.js';
@@ -28,10 +27,7 @@ export function registerGetTickersJpy(server: McpServer) {
         return { content: [{ type: 'text', text: 'Failed to retrieve tickers_jpy data' }] };
       }
 
-      // ALLOWED_PAIRSでフィルタ
-      const filtered = json.data.filter((d) => ALLOWED_PAIRS.has(d.pair));
-
-      const items: NormalizedTicker[] = filtered.map((d) => {
+      const items: NormalizedTicker[] = json.data.map((d) => {
         const last = Number(d.last);
         const open = Number(d.open);
         const volume = Number(d.vol);
