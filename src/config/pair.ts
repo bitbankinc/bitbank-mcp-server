@@ -58,11 +58,15 @@ export const ALLOWED_PAIRS: Set<string> = new Set([
 ]);
 
 /**
- * ペア名を正規化 (BTC/JPY → btc_jpy)
+ * ペア名を正規化
+ * Zodバリデーション済みの場合、形式変換（BTC/JPY → btc_jpy）は不要
+ * 正規形式（xxx_yyy）以外は null を返す
  */
 export function normalizePair(raw: unknown): string | null {
   if (!raw) return null;
-  return String(raw).trim().toLowerCase().replace(/[\/-]/g, '_');
+  const s = String(raw).trim().toLowerCase();
+  if (!pairRegex.test(s)) return null;
+  return s;
 }
 
 /**
@@ -75,7 +79,7 @@ export type PairValidationResult = { ok: true; pair: string } | { ok: false; err
  */
 export function ensurePair(pair: unknown): PairValidationResult {
   const norm = normalizePair(pair);
-  if (!norm || !pairRegex.test(norm)) {
+  if (!norm) {
     return {
       ok: false,
       error: { type: 'user', message: `pair '${String(pair)}' が不正です（例: btc_jpy）` },
