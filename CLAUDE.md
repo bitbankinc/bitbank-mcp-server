@@ -1,56 +1,67 @@
-# CLAUDE.md - bitbank MCP Server
+# Rules for bitbank-mcp-server
 
 ## プロジェクト概要
 
-bitbank 公式 MCP（Model Context Protocol）サーバー。
-bitbank 公開 API のデータ取得ツールを Claude 等の AI に提供する。
+bitbank 暗号資産取引所の公開APIからマーケットデータを取得する MCP (Model Context Protocol) サーバー。
 
 ## 技術スタック
 
-- TypeScript（strict mode, ES2022, Node16 modules）
-- MCP SDK: `@modelcontextprotocol/sdk`
-- Biome: フォーマッタ（single quotes, 2-space indent, 140 char width）
-- Zod: パラメータバリデーション
+- TypeScript (ES2022, Node16 module)
+- MCP SDK (`@modelcontextprotocol/sdk`)
+- dayjs（日時処理）
+- Zod（バリデーション）
+- BigNumber.js（精密な数値計算）
+- Biome（フォーマッタ・リンター）
+- Vitest（テスト）
 
-## ビルド・実行
+## コマンド
 
-```bash
-npm install
-npm run build      # tsc && chmod 755 build/index.js
-node build/index.js  # stdio で起動
-```
+- `npm run build` — TypeScript コンパイル
+- `npm run format:check` — Biome によるフォーマット・リントチェック
+- `npm run format:fix` — Biome による自動修正
+- `npm test` — Vitest によるユニットテスト実行
 
 ## アーキテクチャ
 
-- `src/index.ts` - メインサーバー。register 関数パターンでツールを登録
-- `src/client.ts` - HTTP クライアント（fetchJson: タイムアウト・リトライ付き）
-- `src/config/pair.ts` - ペアホワイトリスト（44ペア、上場廃止除外）
-- `src/types.ts` - API レスポンス型・正規化型
-- `src/utils/` - datetime, format ユーティリティ
+```
+src/
+  index.ts              — エントリーポイント（サーバー起動・ツール登録のみ）
+  client.ts             — HTTP クライアント（fetchJson）
+  types.ts              — 型定義
+  config/
+    pair.ts             — ペアバリデーション・ホワイトリスト
+  tools/
+    get-ticker.ts       — 単一ペアのティッカー取得
+    get-tickers-jpy.ts  — 全JPYペア一括取得（キャッシュ付き）
+    get-candles.ts      — ローソク足データ取得
+    get-depth.ts        — 板情報取得
+    get-transactions.ts — 約定履歴取得
+  utils/
+    datetime.ts         — 日時変換（dayjs ベース）
+    format.ts           — 表示フォーマット
+```
 
-## ツール一覧
+## 実装ルール
 
-| ツール | API | 概要 |
-|--------|-----|------|
-| get_ticker | /{pair}/ticker | 単一ペアのティッカー |
-| get_tickers_jpy | /tickers_jpy | 全JPYペアのティッカー |
-| get_candles | /{pair}/candlestick | ローソク足（OHLCV） |
-| get_depth | /{pair}/depth | 板の生データ |
-| get_transactions | /{pair}/transactions | 約定履歴 |
+- 日時処理には `Date` ではなく `dayjs` を使用すること。
+- ペアのバリデーションは Zod スキーマ（`pairRegex`）+ `ensurePair` で行う。`normalizePair` に形式変換ロジックは持たせない。
+- 新しいツールは `src/tools/` に独立したファイルとして追加し、`index.ts` で登録する。
+- `index.ts` にビジネスロジックを書かない。
+- import パスには `.js` 拡張子を付ける（Node16 module resolution）。
 
 ## コーディング規約
 
-- register 関数パターン: 各ツールは `registerGetXxx(server: McpServer)` で登録
-- エラー出力は日本語
-- 正規化データ: API の生データを `Normalized*` 型に変換して返却
-- ペア検証: `ensurePair()` で必ずホワイトリスト照合
-
-## 参考
-
-- bitbank 公開 API: https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-api.md
-- ロードマップ: docs/roadmap.md
+- Biome 準拠（シングルクォート、スペースインデント、行幅 140）
+- テストは `__tests__/` ディレクトリに配置（`*.test.ts`）
+- 大きな変更を行う場合は README も更新すること。
 
 ## メンテナンスルール
 
-- `CLAUDE.md`（本体）と `AGENTS.md`（symlink）は同じ内容を指す。
-- 編集時は `CLAUDE.md` を更新すること。
+- `CLAUDE.md`（本体）と `AGENTS.md` は同じ内容を維持すること。
+- `AGENTS.md` は `CLAUDE.md` への symlink。
+- 編集時は `CLAUDE.md` を更新する。
+
+## 参考
+
+- bitbank Public API: https://github.com/bitbankinc/bitbank-api-docs
+- MCP SDK: https://github.com/modelcontextprotocol/typescript-sdk
