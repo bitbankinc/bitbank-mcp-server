@@ -29,7 +29,7 @@ src/
   client.ts             — HTTP クライアント（fetchJson）
   types.ts              — 型定義
   config/
-    pair.ts             — ペアバリデーション・ホワイトリスト
+    pair.ts             — ペアバリデーション（regex）
   tools/
     get-ticker.ts       — 単一ペアのティッカー取得
     get-tickers-jpy.ts  — 全JPYペア一括取得（キャッシュ付き）
