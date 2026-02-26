@@ -1,50 +1,22 @@
 #!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
-import { getTickerResponse } from './client.js';
-import { pairRegex } from './config/pair.js';
-import { formatTicker } from './utils/format-ticker.js';
+import { registerGetCandles } from './tools/get-candles.js';
+import { registerGetDepth } from './tools/get-depth.js';
+import { registerGetTicker } from './tools/get-ticker.js';
+import { registerGetTickersJpy } from './tools/get-tickers-jpy.js';
+import { registerGetTransactions } from './tools/get-transactions.js';
 
-// Create server instance
 const server = new McpServer({
   name: 'bitbank',
-  version: '0.1.0',
+  version: '0.2.0',
 });
 
-// Register bitbank tools
-server.tool(
-  'get_ticker',
-  'Get ticker data for a trading pair',
-  {
-    pair: z.string().regex(pairRegex).describe('Trading pair to get ticker data for. eg. btc_jpy, eth_jpy').endsWith('_jpy'),
-  },
-  async ({ pair }) => {
-    const rawTicker = await getTickerResponse(pair);
-
-    if (!rawTicker || rawTicker.success !== 1) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: 'Failed to retrieve ticker data',
-          },
-        ],
-      };
-    }
-
-    const formattedTicker = formatTicker(rawTicker, pair);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: formattedTicker,
-        },
-      ],
-    };
-  },
-);
+registerGetTicker(server);
+registerGetTickersJpy(server);
+registerGetCandles(server);
+registerGetDepth(server);
+registerGetTransactions(server);
 
 async function main() {
   const transport = new StdioServerTransport();

@@ -4,10 +4,45 @@ This project is a Model Context Protocol (MCP) server for [bitbank](https://bitb
 
 ## Tools
 
-- get_ticker
-  - Get ticker data for a trading pair
-  - input:
-    - `pair` (string): Trading pair to get ticker data for. eg. btc_jpy, eth_jpy
+### get_ticker
+
+単一ペアのティッカーを取得（/ticker）。価格・出来高・24h高安。
+
+- input:
+  - `pair` (string): Trading pair (e.g., btc_jpy, eth_jpy)
+
+### get_tickers_jpy
+
+全JPYペアのティッカーを取得（/tickers_jpy）。24h変動率付き。キャッシュ10秒。
+
+- input: なし
+
+### get_candles
+
+ローソク足を取得（/candlestick）。OHLCVデータ。
+
+- input:
+  - `pair` (string): Trading pair (e.g., btc_jpy)
+  - `type` (string): Candle type (1min, 5min, 15min, 30min, 1hour, 4hour, 8hour, 12hour, 1day, 1week, 1month)
+  - `date` (string, optional): Date in YYYYMMDD (for minute/hour) or YYYY (for day/week/month)
+  - `limit` (number): Number of candles to return (default: 200, max: 1000)
+
+### get_depth
+
+板の生データ取得（/depth API直接）。差分計算・壁検出・圧力分析の元データ。
+
+- input:
+  - `pair` (string): Trading pair (e.g., btc_jpy)
+  - `maxLevels` (number): Maximum number of price levels (default: 200, max: 500)
+
+### get_transactions
+
+約定履歴を取得（/transactions）。直近の約定データ。日付指定可。買い/売り比率を算出。
+
+- input:
+  - `pair` (string): Trading pair (e.g., btc_jpy)
+  - `limit` (number): Number of transactions to return (default: 100, max: 1000)
+  - `date` (string, optional): Date in YYYYMMDD format
 
 ## Usage
 

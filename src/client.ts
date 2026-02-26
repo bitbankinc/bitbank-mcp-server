@@ -1,11 +1,29 @@
-import { TickerResponse } from './types.js';
+/** bitbank Public API ベースURL */
+export const BITBANK_API_BASE = 'https://public.bitbank.cc';
 
-// bitban public api base url
-const BITBANK_API_BASE_URL = 'https://public.bitbank.cc/';
+export interface FetchJsonOptions {
+  timeoutMs?: number;
+  retries?: number;
+}
 
-export async function getTickerResponse(pair: string): Promise<TickerResponse> {
-  const ticker = await fetch(`${BITBANK_API_BASE_URL}${pair}/ticker`);
-  const tickerJson = await ticker.json();
-
-  return tickerJson;
+/**
+ * JSON APIを呼び出す（タイムアウト・リトライ対応）
+ */
+export async function fetchJson<T = unknown>(url: string, { timeoutMs = 2500, retries = 2 }: FetchJsonOptions = {}): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i <= retries; i++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      return (await res.json()) as T;
+    } catch (e) {
+      clearTimeout(t);
+      lastErr = e;
+      if (i < retries) await new Promise((r) => setTimeout(r, 200 * 2 ** i));
+    }
+  }
+  throw lastErr;
 }

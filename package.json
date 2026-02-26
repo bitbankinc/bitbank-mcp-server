@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "format:check": "npx biome check",
-    "format:fix": "npx biome check --fix --unsafe"
+    "format:fix": "npx biome check --fix --unsafe",
+    "test": "vitest run --dir src"
   },
   "files": ["build"],
   "keywords": ["mcp"],
@@ -25,7 +26,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.10",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.18"
   },
   "volta": {
     "node": "22.14.0"
