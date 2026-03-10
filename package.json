@@ -13,12 +13,8 @@
     "format:fix": "npx biome check --fix --unsafe",
     "test": "vitest run --dir src"
   },
-  "files": [
-    "build"
-  ],
-  "keywords": [
-    "mcp"
-  ],
+  "files": ["build"],
+  "keywords": ["mcp"],
   "author": "",
   "license": "MIT",
   "dependencies": {
