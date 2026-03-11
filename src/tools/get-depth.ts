@@ -4,7 +4,7 @@ import { BITBANK_API_BASE, fetchJson } from '../client.js';
 import { ensurePair, pairRegex } from '../config/pair.js';
 import { DepthResponse } from '../types.js';
 import { toIsoTime } from '../utils/datetime.js';
-import { formatPair, formatPrice } from '../utils/format.js';
+import { formatPair, formatPrice, formatVolume } from '../utils/format.js';
 
 export function registerGetDepth(server: McpServer) {
   server.tool(
@@ -37,13 +37,24 @@ export function registerGetDepth(server: McpServer) {
         const mid = bestBid && bestAsk ? Number(((bestBid + bestAsk) / 2).toFixed(2)) : null;
 
         const isJpy = chk.pair.includes('jpy');
+        const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
 
-        // サマリ
+        // 全件展開
         const lines: string[] = [];
         lines.push(`${formatPair(chk.pair)} 板深度`);
-        lines.push(`中値: ${mid ? formatPrice(mid, isJpy) : 'N/A'}`);
-        lines.push(`板の層数: 買い ${bids.length}層 / 売り ${asks.length}層`);
-        lines.push(`時刻: ${toIsoTime(d.timestamp) ?? 'N/A'}`);
+        lines.push(`中値: ${mid ? formatPrice(mid, isJpy) : 'N/A'} | 時刻: ${toIsoTime(d.timestamp) ?? 'N/A'}`);
+        lines.push('');
+        lines.push(`[ASKS 売り板 ${asks.length}層] (価格昇順: 最良気配が先頭)`);
+        lines.push('price | amount');
+        for (const [p, s] of asks) {
+          lines.push(`${formatPrice(p, isJpy)} | ${formatVolume(s, baseCurrency)}`);
+        }
+        lines.push('');
+        lines.push(`[BIDS 買い板 ${bids.length}層] (価格降順: 最良気配が先頭)`);
+        lines.push('price | amount');
+        for (const [p, s] of bids) {
+          lines.push(`${formatPrice(p, isJpy)} | ${formatVolume(s, baseCurrency)}`);
+        }
 
         return {
           content: [{ type: 'text', text: lines.join('\n') }],

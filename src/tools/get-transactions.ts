@@ -52,18 +52,18 @@ export function registerGetTransactions(server: McpServer) {
         const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
         const totalVolume = normalized.reduce((sum, t) => sum + t.amount, 0);
 
-        // サマリ
+        // 全件展開
         const lines: string[] = [];
         lines.push(`${formatPair(chk.pair)} 直近取引 ${normalized.length}件`);
         if (normalized.length > 0) {
-          const latest = normalized[normalized.length - 1];
-          lines.push(`最新約定: ${formatPrice(latest.price, isJpy)}`);
-
           const dominant = buyRatio >= 60 ? '買い優勢' : buyRatio <= 40 ? '売り優勢' : '拮抗';
-          lines.push(`買い: ${buys}件 / 売り: ${sells}件（${dominant}）`);
-
           const volStr = totalVolume >= 1 ? totalVolume.toFixed(4) : totalVolume.toFixed(6);
-          lines.push(`出来高: ${volStr} ${baseCurrency}`);
+          lines.push(`集計: 買い ${buys}件 / 売り ${sells}件（${dominant}） | 出来高: ${volStr} ${baseCurrency}`);
+          lines.push('');
+          lines.push('datetime | side | price | amount');
+          for (const t of normalized) {
+            lines.push(`${t.isoTime ?? 'N/A'} | ${t.side} | ${formatPrice(t.price, isJpy)} | ${t.amount} ${baseCurrency}`);
+          }
         }
 
         return {

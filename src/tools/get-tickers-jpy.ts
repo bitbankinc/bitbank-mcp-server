@@ -3,10 +3,23 @@ import dayjs from 'dayjs';
 import { BITBANK_API_BASE, fetchJson } from '../client.js';
 import { NormalizedTicker, TickersJpyResponse } from '../types.js';
 import { toIsoTime } from '../utils/datetime.js';
-import { formatChange, formatPair, formatPrice } from '../utils/format.js';
+import { formatChange, formatPair, formatPrice, formatVolume } from '../utils/format.js';
 
 let tickersJpyCache: { ts: number; data: NormalizedTicker[] } | null = null;
 const TICKERS_JPY_CACHE_TTL = 10000;
+
+function buildTickersJpyText(items: NormalizedTicker[], cached: boolean): string {
+  const lines: string[] = [];
+  lines.push(`JPYペア ${items.length}件${cached ? ' (cached)' : ''}`);
+  lines.push('pair | last | high | low | vol | chg24h');
+  for (const item of items) {
+    const base = item.pair.split('_')[0]?.toUpperCase() ?? '';
+    lines.push(
+      `${formatPair(item.pair)} | ${formatPrice(item.last, true)} | ${formatPrice(item.high, true)} | ${formatPrice(item.low, true)} | ${formatVolume(item.volume, base)} | ${formatChange(item.change24hPct ?? null)}`,
+    );
+  }
+  return lines.join('\n');
+}
 
 export function registerGetTickersJpy(server: McpServer) {
   server.tool('get_tickers_jpy', '全JPYペアのティッカーを取得（/tickers_jpy）。24h変動率付き。キャッシュ10秒。', {}, async () => {
@@ -14,8 +27,9 @@ export function registerGetTickersJpy(server: McpServer) {
 
     // キャッシュチェック
     if (tickersJpyCache && now - tickersJpyCache.ts < TICKERS_JPY_CACHE_TTL) {
+      const cacheLines = buildTickersJpyText(tickersJpyCache.data, true);
       return {
-        content: [{ type: 'text', text: `JPYペア ${tickersJpyCache.data.length}件 (cached)` }],
+        content: [{ type: 'text', text: cacheLines }],
         structuredContent: { items: tickersJpyCache.data, meta: { cached: true } },
       };
     }
@@ -51,18 +65,8 @@ export function registerGetTickersJpy(server: McpServer) {
 
       tickersJpyCache = { ts: now, data: items };
 
-      // サマリ
-      const lines: string[] = [];
-      lines.push(`JPYペア ${items.length}件取得`);
-      for (const item of items.slice(0, 5)) {
-        lines.push(`${formatPair(item.pair)}: ${formatPrice(item.last, true)} (${formatChange(item.change24hPct ?? null)})`);
-      }
-      if (items.length > 5) {
-        lines.push(`... 他${items.length - 5}ペア`);
-      }
-
       return {
-        content: [{ type: 'text', text: lines.join('\n') }],
+        content: [{ type: 'text', text: buildTickersJpyText(items, false) }],
         structuredContent: { items, meta: { count: items.length, fetchedAt: dayjs().toISOString() } },
       };
     } catch (e) {
