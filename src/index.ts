@@ -117,18 +117,33 @@ function registerGetTicker(server: McpServer) {
 let tickersJpyCache: { ts: number; data: NormalizedTicker[] } | null = null;
 const TICKERS_JPY_CACHE_TTL = 10000;
 
+function buildTickersJpyText(items: NormalizedTicker[], cached: boolean): string {
+  const lines: string[] = [];
+  lines.push(`--- DATA BEGIN: get_tickers_jpy (${items.length}件${cached ? ', cached' : ''}) ---`);
+  lines.push('pair | last | high | low | vol | chg24h');
+  for (const item of items) {
+    const base = item.pair.split('_')[0]?.toUpperCase() ?? '';
+    lines.push(
+      `${formatPair(item.pair)} | ${formatPrice(item.last, true)} | ${formatPrice(item.high, true)} | ${formatPrice(item.low, true)} | ${formatVolume(item.volume, base)} | ${formatChange(item.change24hPct ?? null)}`,
+    );
+  }
+  lines.push(`--- DATA END (${items.length}/${items.length}件 全件表示) ---`);
+  lines.push('');
+  lines.push('含まれるデータ: 全JPYペアの last/high/low/vol/change24h');
+  lines.push('含まれないデータ: bid/ask スプレッド、板深度、約定履歴');
+  lines.push('💡 個別ペア詳細 → get_ticker(pair), 板情報 → get_depth(pair), 約定 → get_transactions(pair)');
+  return lines.join('\n');
+}
+
 function registerGetTickersJpy(server: McpServer) {
-  server.tool(
-    'get_tickers_jpy',
-    '全JPYペアのティッカーを取得（/tickers_jpy）。24h変動率付き。キャッシュ10秒。',
-    {},
-    async () => {
+  server.tool('get_tickers_jpy', '全JPYペアのティッカーを取得（/tickers_jpy）。24h変動率付き。キャッシュ10秒。', {}, async () => {
     const now = Date.now();
 
     // キャッシュチェック
     if (tickersJpyCache && now - tickersJpyCache.ts < TICKERS_JPY_CACHE_TTL) {
+      const cacheLines = buildTickersJpyText(tickersJpyCache.data, true);
       return {
-        content: [{ type: 'text', text: `JPYペア ${tickersJpyCache.data.length}件 (cached)` }],
+        content: [{ type: 'text', text: cacheLines }],
         structuredContent: { items: tickersJpyCache.data, meta: { cached: true } },
       };
     }
@@ -167,18 +182,8 @@ function registerGetTickersJpy(server: McpServer) {
 
       tickersJpyCache = { ts: now, data: items };
 
-      // サマリ
-      const lines: string[] = [];
-      lines.push(`JPYペア ${items.length}件取得`);
-      for (const item of items.slice(0, 5)) {
-        lines.push(`${formatPair(item.pair)}: ${formatPrice(item.last, true)} (${formatChange(item.change24hPct ?? null)})`);
-      }
-      if (items.length > 5) {
-        lines.push(`... 他${items.length - 5}ペア`);
-      }
-
       return {
-        content: [{ type: 'text', text: lines.join('\n') }],
+        content: [{ type: 'text', text: buildTickersJpyText(items, false) }],
         structuredContent: { items, meta: { count: items.length, fetchedAt: new Date().toISOString() } },
       };
     } catch (e) {
@@ -255,14 +260,38 @@ function registerGetCandles(server: McpServer) {
         const latest = normalized[normalized.length - 1];
         const oldest = normalized[0];
         const isJpy = chk.pair.includes('jpy');
+        const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
 
-        // サマリ生成
+        // 全件展開
         const lines: string[] = [];
-        lines.push(`${formatPair(chk.pair)} [${type}] ローソク足${normalized.length}本取得`);
+        lines.push(`--- DATA BEGIN: get_candles ${formatPair(chk.pair)} [${type}] ${normalized.length}本 ---`);
         lines.push(`期間: ${oldest.isoTime?.split('T')[0] ?? 'N/A'} 〜 ${latest.isoTime?.split('T')[0] ?? 'N/A'}`);
-        lines.push(`最新終値: ${formatPrice(latest.close, isJpy)}`);
+        lines.push('⚠️ 配列は古い順: data[0]=最古、data[最後]=最新');
         lines.push('');
-        lines.push(`⚠️ 配列は古い順: data[0]=最古、data[${normalized.length - 1}]=最新`);
+        lines.push('# | datetime | open | high | low | close | chg% | volume');
+        for (let i = 0; i < normalized.length; i++) {
+          const c = normalized[i];
+          const changePct = c.open > 0 ? ((c.close - c.open) / c.open) * 100 : 0;
+          lines.push(
+            `${i} | ${c.isoTime ?? 'N/A'} | ${formatPrice(c.open, isJpy)} | ${formatPrice(c.high, isJpy)} | ${formatPrice(c.low, isJpy)} | ${formatPrice(c.close, isJpy)} | ${formatChange(changePct)} | ${formatVolume(c.volume, baseCurrency)}`,
+          );
+        }
+        // 出来高トレンド（前半 vs 後半）
+        const half = Math.floor(normalized.length / 2);
+        if (half > 0) {
+          const firstHalfVol = normalized.slice(0, half).reduce((s, c) => s + c.volume, 0);
+          const secondHalfVol = normalized.slice(half).reduce((s, c) => s + c.volume, 0);
+          const volTrend = secondHalfVol > firstHalfVol ? '増加' : secondHalfVol < firstHalfVol ? '減少' : '横ばい';
+          lines.push('');
+          lines.push(
+            `出来高トレンド: 前半 ${formatVolume(firstHalfVol, baseCurrency)} → 後半 ${formatVolume(secondHalfVol, baseCurrency)} (${volTrend})`,
+          );
+        }
+        lines.push(`--- DATA END (${normalized.length}/${normalized.length}本 全件表示) ---`);
+        lines.push('');
+        lines.push('含まれるデータ: 全OHLCV + 各足の変動率 + 出来高トレンド');
+        lines.push('含まれないデータ: 板情報、約定履歴、他のタイムフレーム');
+        lines.push('💡 板情報 → get_depth(pair), 約定 → get_transactions(pair), 現在値 → get_ticker(pair)');
 
         return {
           content: [{ type: 'text', text: lines.join('\n') }],
@@ -313,13 +342,29 @@ function registerGetDepth(server: McpServer) {
         const mid = bestBid && bestAsk ? Number(((bestBid + bestAsk) / 2).toFixed(2)) : null;
 
         const isJpy = chk.pair.includes('jpy');
+        const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
 
-        // サマリ
+        // 全件展開
         const lines: string[] = [];
-        lines.push(`${formatPair(chk.pair)} 板深度`);
-        lines.push(`中値: ${mid ? formatPrice(mid, isJpy) : 'N/A'}`);
-        lines.push(`板の層数: 買い ${bids.length}層 / 売り ${asks.length}層`);
-        lines.push(`時刻: ${toIsoTime(d.timestamp) ?? 'N/A'}`);
+        lines.push(`--- DATA BEGIN: get_depth ${formatPair(chk.pair)} ---`);
+        lines.push(`中値: ${mid ? formatPrice(mid, isJpy) : 'N/A'} | 時刻: ${toIsoTime(d.timestamp) ?? 'N/A'}`);
+        lines.push('');
+        lines.push(`[ASKS 売り板 ${asks.length}層] (価格昇順: 最良気配が先頭)`);
+        lines.push('price | amount');
+        for (const [p, s] of asks) {
+          lines.push(`${formatPrice(p, isJpy)} | ${formatVolume(s, baseCurrency)}`);
+        }
+        lines.push('');
+        lines.push(`[BIDS 買い板 ${bids.length}層] (価格降順: 最良気配が先頭)`);
+        lines.push('price | amount');
+        for (const [p, s] of bids) {
+          lines.push(`${formatPrice(p, isJpy)} | ${formatVolume(s, baseCurrency)}`);
+        }
+        lines.push(`--- DATA END (asks ${asks.length}層 + bids ${bids.length}層 全件表示) ---`);
+        lines.push('');
+        lines.push('含まれるデータ: 全 bid/ask レベルの価格・数量');
+        lines.push('含まれないデータ: 約定履歴、ローソク足、ティッカー');
+        lines.push('💡 約定 → get_transactions(pair), チャート → get_candles(pair), 現在値 → get_ticker(pair)');
 
         return {
           content: [{ type: 'text', text: lines.join('\n') }],
@@ -388,19 +433,24 @@ function registerGetTransactions(server: McpServer) {
         const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
         const totalVolume = normalized.reduce((sum, t) => sum + t.amount, 0);
 
-        // サマリ
+        // 全件展開
         const lines: string[] = [];
-        lines.push(`${formatPair(chk.pair)} 直近取引 ${normalized.length}件`);
+        lines.push(`--- DATA BEGIN: get_transactions ${formatPair(chk.pair)} ${normalized.length}件 ---`);
         if (normalized.length > 0) {
-          const latest = normalized[normalized.length - 1];
-          lines.push(`最新約定: ${formatPrice(latest.price, isJpy)}`);
-
           const dominant = buyRatio >= 60 ? '買い優勢' : buyRatio <= 40 ? '売り優勢' : '拮抗';
-          lines.push(`買い: ${buys}件 / 売り: ${sells}件（${dominant}）`);
-
           const volStr = totalVolume >= 1 ? totalVolume.toFixed(4) : totalVolume.toFixed(6);
-          lines.push(`出来高: ${volStr} ${baseCurrency}`);
+          lines.push(`集計: 買い ${buys}件 / 売り ${sells}件（${dominant}） | 出来高: ${volStr} ${baseCurrency}`);
+          lines.push('');
+          lines.push('datetime | side | price | amount');
+          for (const t of normalized) {
+            lines.push(`${t.isoTime ?? 'N/A'} | ${t.side} | ${formatPrice(t.price, isJpy)} | ${t.amount} ${baseCurrency}`);
+          }
         }
+        lines.push(`--- DATA END (${normalized.length}/${normalized.length}件 全件表示) ---`);
+        lines.push('');
+        lines.push('含まれるデータ: 全約定の時刻・方向・価格・数量');
+        lines.push('含まれないデータ: 板情報、ローソク足、ティッカー');
+        lines.push('💡 板情報 → get_depth(pair), チャート → get_candles(pair), 現在値 → get_ticker(pair)');
 
         return {
           content: [{ type: 'text', text: lines.join('\n') }],
