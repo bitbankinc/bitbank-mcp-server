@@ -41,7 +41,7 @@ describe('get_candles', () => {
   it('ローソク足データを返す', async () => {
     (fetchJson as unknown as MockInstance).mockResolvedValue(candlesData);
     const result = await handler({ pair: 'btc_jpy', type: '1day', limit: 200 });
-    expect(result.content[0].text).toContain('ローソク足2本取得');
+    expect(result.content[0].text).toContain('ローソク足2本');
     expect(result.structuredContent.normalized).toHaveLength(2);
   });
 

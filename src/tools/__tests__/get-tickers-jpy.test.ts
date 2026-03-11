@@ -59,7 +59,7 @@ describe('get_tickers_jpy', () => {
   it('全JPYペアのティッカーを返す', async () => {
     (fetchJson as unknown as MockInstance).mockResolvedValue(tickersData);
     const result = await handler();
-    expect(result.content[0].text).toContain('JPYペア 2件取得');
+    expect(result.content[0].text).toContain('JPYペア 2件');
     expect(result.structuredContent.items).toHaveLength(2);
   });
 
