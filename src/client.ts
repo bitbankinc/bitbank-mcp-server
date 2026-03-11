@@ -1,5 +1,3 @@
-import { TickerResponse } from './types.js';
-
 /** bitbank Public API ベースURL */
 export const BITBANK_API_BASE = 'https://public.bitbank.cc';
 
@@ -28,14 +26,4 @@ export async function fetchJson<T = unknown>(url: string, { timeoutMs = 2500, re
     }
   }
   throw lastErr;
-}
-
-/**
- * 既存の getTickerResponse（後方互換性のため維持）
- */
-export async function getTickerResponse(pair: string): Promise<TickerResponse> {
-  const ticker = await fetch(`${BITBANK_API_BASE}/${pair}/ticker`);
-  const tickerJson = await ticker.json();
-
-  return tickerJson;
 }

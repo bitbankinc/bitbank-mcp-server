@@ -107,15 +107,6 @@ export interface NormalizedCandle {
 }
 
 /**
- * 正規化された板データ
- */
-export interface NormalizedDepthEntry {
-  price: number;
-  amount: number;
-  total?: number;
-}
-
-/**
  * 正規化された取引データ
  */
 export interface NormalizedTransaction {
