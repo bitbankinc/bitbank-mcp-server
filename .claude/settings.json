@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "which gh || (apt-get update && apt-get install -y gh)",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
