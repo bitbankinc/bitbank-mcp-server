@@ -8,7 +8,7 @@ import { formatChange, formatPair, formatPrice, formatVolume } from '../utils/fo
 let tickersJpyCache: { ts: number; data: NormalizedTicker[] } | null = null;
 const TICKERS_JPY_CACHE_TTL = 10000;
 
-function buildTickersJpyText(items: NormalizedTicker[], cached: boolean): string {
+export function buildTickersJpyText(items: NormalizedTicker[], cached: boolean): string {
   const lines: string[] = [];
   lines.push(`JPYペア ${items.length}件${cached ? ' (cached)' : ''}`);
   lines.push('pair | last | high | low | vol | chg24h');
