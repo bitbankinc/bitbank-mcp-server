@@ -5,10 +5,49 @@ import { BITBANK_API_BASE, fetchJson } from '../client.js';
 import { ensurePair, pairRegex } from '../config/pair.js';
 import { CandlestickResponse, NormalizedCandle } from '../types.js';
 import { toIsoTime } from '../utils/datetime.js';
-import { formatPair, formatPrice } from '../utils/format.js';
+import { formatChange, formatPair, formatPrice, formatVolume } from '../utils/format.js';
 
 const CANDLE_TYPES = ['1min', '5min', '15min', '30min', '1hour', '4hour', '8hour', '12hour', '1day', '1week', '1month'] as const;
 const YEARLY_TYPES = new Set(['4hour', '8hour', '12hour', '1day', '1week', '1month']);
+
+export interface BuildCandlesTextParams {
+  pair: string;
+  type: string;
+  normalized: NormalizedCandle[];
+}
+
+export function buildCandlesText({ pair, type, normalized }: BuildCandlesTextParams): string {
+  const latest = normalized[normalized.length - 1];
+  const oldest = normalized[0];
+  const isJpy = pair.includes('jpy');
+  const baseCurrency = pair.split('_')[0]?.toUpperCase() ?? '';
+
+  const lines: string[] = [];
+  lines.push(`${formatPair(pair)} [${type}] ローソク足${normalized.length}本`);
+  lines.push(`期間: ${oldest.isoTime?.split('T')[0] ?? 'N/A'} 〜 ${latest.isoTime?.split('T')[0] ?? 'N/A'}`);
+  lines.push('');
+  lines.push('# | datetime | open | high | low | close | chg% | volume');
+  for (let i = 0; i < normalized.length; i++) {
+    const c = normalized[i];
+    const changePct = c.open > 0 ? ((c.close - c.open) / c.open) * 100 : 0;
+    lines.push(
+      `${i} | ${c.isoTime ?? 'N/A'} | ${formatPrice(c.open, isJpy)} | ${formatPrice(c.high, isJpy)} | ${formatPrice(c.low, isJpy)} | ${formatPrice(c.close, isJpy)} | ${formatChange(changePct)} | ${formatVolume(c.volume, baseCurrency)}`,
+    );
+  }
+  // 出来高トレンド（前半 vs 後半）
+  const half = Math.floor(normalized.length / 2);
+  if (half > 0) {
+    const firstHalfVol = normalized.slice(0, half).reduce((s, c) => s + c.volume, 0);
+    const secondHalfVol = normalized.slice(half).reduce((s, c) => s + c.volume, 0);
+    const volTrend = secondHalfVol > firstHalfVol ? '増加' : secondHalfVol < firstHalfVol ? '減少' : '横ばい';
+    lines.push('');
+    lines.push(
+      `出来高トレンド: 前半 ${formatVolume(firstHalfVol, baseCurrency)} → 後半 ${formatVolume(secondHalfVol, baseCurrency)} (${volTrend})`,
+    );
+  }
+
+  return lines.join('\n');
+}
 
 export function registerGetCandles(server: McpServer) {
   server.tool(
@@ -62,20 +101,10 @@ export function registerGetCandles(server: McpServer) {
           isoTime: toIsoTime(ts),
         }));
 
-        const latest = normalized[normalized.length - 1];
-        const oldest = normalized[0];
-        const isJpy = chk.pair.includes('jpy');
-
-        // サマリ生成
-        const lines: string[] = [];
-        lines.push(`${formatPair(chk.pair)} [${type}] ローソク足${normalized.length}本取得`);
-        lines.push(`期間: ${oldest.isoTime?.split('T')[0] ?? 'N/A'} 〜 ${latest.isoTime?.split('T')[0] ?? 'N/A'}`);
-        lines.push(`最新終値: ${formatPrice(latest.close, isJpy)}`);
-        lines.push('');
-        lines.push(`⚠️ 配列は古い順: data[0]=最古、data[${normalized.length - 1}]=最新`);
+        const text = buildCandlesText({ pair: chk.pair, type, normalized });
 
         return {
-          content: [{ type: 'text', text: lines.join('\n') }],
+          content: [{ type: 'text', text }],
           structuredContent: {
             normalized,
             meta: { pair: chk.pair, type, date: dateParam, count: normalized.length },

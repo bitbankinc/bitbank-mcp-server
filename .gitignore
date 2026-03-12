@@ -39,3 +39,6 @@ jspm_packages/
 
 # MCP
 .vscode/mcp.json
+
+# Claude Code local settings (contains secrets)
+.claude/settings.local.json
