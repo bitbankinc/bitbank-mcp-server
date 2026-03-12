@@ -6,6 +6,35 @@ import { NormalizedTransaction, TransactionsResponse } from '../types.js';
 import { toIsoTime } from '../utils/datetime.js';
 import { formatPair, formatPrice, formatVolume } from '../utils/format.js';
 
+export interface BuildTransactionsTextParams {
+  pair: string;
+  normalized: NormalizedTransaction[];
+  buys: number;
+  sells: number;
+  buyRatio: number;
+  totalVolume: number;
+}
+
+export function buildTransactionsText({ pair, normalized, buys, sells, buyRatio, totalVolume }: BuildTransactionsTextParams): string {
+  const isJpy = pair.includes('jpy');
+  const baseCurrency = pair.split('_')[0]?.toUpperCase() ?? '';
+
+  const lines: string[] = [];
+  lines.push(`${formatPair(pair)} 直近取引 ${normalized.length}件`);
+  if (normalized.length > 0) {
+    const dominant = buyRatio >= 60 ? '買い優勢' : buyRatio <= 40 ? '売り優勢' : '拮抗';
+    const volStr = totalVolume >= 1 ? totalVolume.toFixed(4) : totalVolume.toFixed(6);
+    lines.push(`集計: 買い ${buys}件 / 売り ${sells}件（${dominant}） | 出来高: ${volStr} ${baseCurrency}`);
+    lines.push('');
+    lines.push('datetime | side | price | amount');
+    for (const t of normalized) {
+      lines.push(`${t.isoTime ?? 'N/A'} | ${t.side} | ${formatPrice(t.price, isJpy)} | ${t.amount} ${baseCurrency}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
 export function registerGetTransactions(server: McpServer) {
   server.tool(
     'get_transactions',
@@ -48,26 +77,12 @@ export function registerGetTransactions(server: McpServer) {
         const total = buys + sells;
         const buyRatio = total > 0 ? Math.round((buys / total) * 100) : 0;
 
-        const isJpy = chk.pair.includes('jpy');
-        const baseCurrency = chk.pair.split('_')[0]?.toUpperCase() ?? '';
         const totalVolume = normalized.reduce((sum, t) => sum + t.amount, 0);
 
-        // 全件展開
-        const lines: string[] = [];
-        lines.push(`${formatPair(chk.pair)} 直近取引 ${normalized.length}件`);
-        if (normalized.length > 0) {
-          const dominant = buyRatio >= 60 ? '買い優勢' : buyRatio <= 40 ? '売り優勢' : '拮抗';
-          const volStr = totalVolume >= 1 ? totalVolume.toFixed(4) : totalVolume.toFixed(6);
-          lines.push(`集計: 買い ${buys}件 / 売り ${sells}件（${dominant}） | 出来高: ${volStr} ${baseCurrency}`);
-          lines.push('');
-          lines.push('datetime | side | price | amount');
-          for (const t of normalized) {
-            lines.push(`${t.isoTime ?? 'N/A'} | ${t.side} | ${formatPrice(t.price, isJpy)} | ${t.amount} ${baseCurrency}`);
-          }
-        }
+        const text = buildTransactionsText({ pair: chk.pair, normalized, buys, sells, buyRatio, totalVolume });
 
         return {
-          content: [{ type: 'text', text: lines.join('\n') }],
+          content: [{ type: 'text', text }],
           structuredContent: {
             normalized,
             meta: { pair: chk.pair, count: normalized.length, buys, sells, source: date ? 'by_date' : 'latest' },
