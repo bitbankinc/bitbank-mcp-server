@@ -56,7 +56,7 @@ export function registerGetTicker(server: McpServer) {
         }
         lines.push(`出来高: ${formatVolume(vol, baseCurrency)}`);
         if (isJpy) {
-          lines.push(`出来高(税): ¥${Number(jpyVol).toLocaleString('ja-JP')}`);
+          lines.push(`出来高(JPY): ¥${Number(jpyVol).toLocaleString('ja-JP')}`);
         }
         lines.push(`Bid: ${formatPrice(buy, isJpy)} / Ask: ${formatPrice(sell, isJpy)}（スプレッド: ${formatPrice(spread, isJpy)}）`);
         lines.push(`時刻: ${dayjs.unix(d.timestamp / 1000).format('YYYY-MM-DD HH:mm:ss')}`);
