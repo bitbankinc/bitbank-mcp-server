@@ -1,6 +1,6 @@
 {
   "name": "bitbank-mcp-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "bitbank mcp server",
   "main": "index.js",
   "type": "module",
