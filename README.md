@@ -2,6 +2,18 @@
 
 This project is a Model Context Protocol (MCP) server for [bitbank](https://bitbank.cc/).
 
+## ⚠️ このリポジトリは非推奨（Deprecated）です 
+
+今後の開発は後継の **[bitbank-lab-mcp](https://github.com/bitbankinc/bitbank-lab-mcp)** に移行しました。 
+本リポジトリは今後メンテナンス・不具合修正・機能追加を行わず、近日中に Archive される予定です。 
+
+移行にあたっては、設定ファイルから本サーバーの記述を削除したうえで、移行先の README をお読みいただき、記載の手順に沿って設定し直してください。 
+**ご利用の前に、移行先 README の免責事項を必ずご確認ください。** 
+- リポジトリ: https://github.com/bitbankinc/bitbank-lab-mcp 
+- npm: https://www.npmjs.com/package/bitbank-lab-mcp 
+
+(English) This repository is deprecated. Development has moved to [bitbank-lab-mcp](https://github.com/bitbankinc/bitbank-lab-mcp).
+
 ## Tools
 
 ### get_ticker
@@ -45,6 +57,8 @@ This project is a Model Context Protocol (MCP) server for [bitbank](https://bitb
   - `date` (string, optional): Date in YYYYMMDD format
 
 ## Usage
+
+**⚠️ This package is deprecated. Please use [bitbank-lab-mcp](https://github.com/bitbankinc/bitbank-lab-mcp) instead.**
 
 ### npx
 
